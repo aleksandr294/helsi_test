@@ -12,6 +12,7 @@ pydantic-settings = "^2.2.1"
 sqlalchemy = "^2.0.30"
 celery = "^5.4.0"
 requests = "^2.31.0"
+psycopg2-binary = "^2.9.9"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -26,16 +27,13 @@ build-backend = "poetry.core.masonry.api"
 
 
 
-[tool.mypy]
-[[tool.mypy.overrides]]
-module = "unsync.*"  #
 [tool.ruff]
-select = ["E", "F", "ICN", "TID", "N", "D", "ANN", "S", "RUF"]
-ignore = ["D107", "D104", "D106", "D101", "ANN101", "D401", "D407", "D212", "D205", "ANN205", "D202", "D203", "D406",
+lint.select = ["E", "F", "ICN", "TID", "N", "D", "ANN", "S", "RUF"]
+lint.ignore = ["D107", "D104", "D106", "D101", "ANN101", "D401", "D407", "D212", "D205", "ANN205", "D202", "D203", "D406",
     "ANN204", "ANN202", "ANN201"]
-fixable = ["A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ",
+lint.fixable = ["A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ",
     "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE",
     "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
-unfixable = []
+lint.unfixable = []
 line-length = 88
 exclude = ["venv"]
