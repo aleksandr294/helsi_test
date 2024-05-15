@@ -14,6 +14,7 @@ from pathlib import Path
 import dotenv
 import dj_database_url
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +31,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: list = []
 
 
 # Application definition
@@ -43,6 +44,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "drf_spectacular",
+    "rest_framework_simplejwt",
+    "user",
 ]
 
 MIDDLEWARE = [
@@ -56,6 +59,13 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "api.urls"
+
+AUTH_USER_MODEL = "user.User"
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(hours=2),
+}
 
 TEMPLATES = [
     {
@@ -84,7 +94,9 @@ POSTRGRES_URL = dj_database_url.config(default=os.environ.get("POSTGRES_URL"))
 DATABASES = {"default": POSTRGRES_URL}
 
 REST_FRAMEWORK = {
-    # YOUR SETTINGS
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
@@ -100,7 +112,7 @@ SPECTACULAR_SETTINGS = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",  # noqa: E501
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
