@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "rest_framework_simplejwt",
     "user",
+    "currencies",
 ]
 
 MIDDLEWARE = [
@@ -98,6 +99,7 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PAGINATION_CLASS": "api.pagination.CustomPagination",
 }
 
 SPECTACULAR_SETTINGS = {
@@ -147,3 +149,6 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+DEFAULT_CSV_PATH = os.path.join(BASE_DIR, "current_currencies.csv")
