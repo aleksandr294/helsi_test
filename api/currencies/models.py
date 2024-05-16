@@ -15,7 +15,7 @@ class HistoryCurrencies(models.Model):
     currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
     rate = models.DecimalField(max_digits=10, decimal_places=5)
     date = models.DateTimeField(default=datetime.datetime.utcnow())
-    is_current = models.BooleanField()
+    actualy_end = models.DateTimeField()
 
     class Meta:
         db_table = "history_currencies"
