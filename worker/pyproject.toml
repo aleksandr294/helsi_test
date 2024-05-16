@@ -49,3 +49,12 @@ exclude = ["venv"]
 "**/tests/*.py" = [
     "S101",
 ]
+
+
+[[tool.mypy.overrides]]
+module = "celery.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "sqlalchemy.*"
+ignore_missing_imports = true

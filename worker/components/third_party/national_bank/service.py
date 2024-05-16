@@ -16,6 +16,8 @@ from components.third_party.national_bank import (
 from components.currencies import repository as currencies_repository
 import json
 import datetime
+from components.core import logger
+
 
 cnfg = config.config
 
@@ -62,11 +64,11 @@ class NationalBankService:
         """
         try:
             response = requests.get(url=self._currencies_api_url, timeout=self._timeout)
-
+            raise requests.exceptions.Timeout
         except requests.exceptions.Timeout as ex:
-            pass
+            logger.app_logger.error(str(ex))
         except requests.exceptions.RequestException as ex:
-            pass
+            logger.app_logger.error(str(ex))
         finally:
             return response.text
 
