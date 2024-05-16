@@ -15,6 +15,7 @@ dotenv.load_dotenv()
 class Config(pydantic_settings.BaseSettings):
     POSTGRES_URL: str
     BANK_URL: str
+    REDIS_URL: str
 
 
 config = Config()  # type: ignore
