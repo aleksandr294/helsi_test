@@ -13,9 +13,11 @@ from components.third_party.national_bank import (
     schemas as national_bank_schemas,
     constants as national_bank_constants,
 )
-from components.currencies import repository as currencies_repository
+from components.currencies import (
+    history_currencies_repository,
+    repository as currency_repository,
+)
 import json
-import datetime
 from components.core import logger
 
 
@@ -28,30 +30,17 @@ class NationalBankService:
         conn: orm.Session,
         currencies_api_url: str = cnfg.BANK_URL,
         request_timeout: int = national_bank_constants.TIMEOUT,
-        currencies_repo: currencies_repository.CurrenciesRepository = currencies_repository.CurrenciesRepository(),  # noqa: E501
+        history_currencies_repo: history_currencies_repository.HistoryCurrenciesRepository = history_currencies_repository.HistoryCurrenciesRepository(),  # noqa: E501
+        currency_repo: currency_repository.CurrencyRepostitory = currency_repository.CurrencyRepostitory(),  # noqa: E501
     ):
-        """
-         Initializes the NationalBankService.
 
-        Args:
-            conn (orm.Session): The ORM session object for database connection.
-            currencies_api_url (str, optional): The URL of the API
-            to fetch currency data from.
-                Defaults to cnfg.BANK_URL.
-            request_timeout (int, optional): The timeout for
-            the HTTP request to the API.
-                Defaults to national_bank_constants.TIMEOUT.
-            currencies_repo (currencies_repository.CurrenciesRepository): Repository for
-            currency data. Defaults to
-            currencies_repository.CurrenciesRepository().
-
-        """
         self._currencies_api_url: str = currencies_api_url
         self._timeout: int = request_timeout
 
-        self._currencies_repo: currencies_repository.CurrenciesRepository = (
-            currencies_repo
-        )
+        self._history_currencies_repo: (
+            history_currencies_repository.HistoryCurrenciesRepository
+        ) = history_currencies_repo
+        self._currency_repo: currency_repository.CurrencyRepostitory = currency_repo
         self._conn = conn
 
     def get_currencies(self) -> typing.Union[str, None]:
@@ -64,7 +53,6 @@ class NationalBankService:
         """
         try:
             response = requests.get(url=self._currencies_api_url, timeout=self._timeout)
-            raise requests.exceptions.Timeout
         except requests.exceptions.Timeout as ex:
             logger.app_logger.error(str(ex))
         except requests.exceptions.RequestException as ex:
@@ -72,27 +60,9 @@ class NationalBankService:
         finally:
             return response.text
 
-    def parse_item_date(self, item: dict) -> dict:
-        """
-         Parses the date of a currency item.
-
-        Args:
-            item (dict): The currency item.
-
-        Returns:
-            dict: The currency item with parsed date.
-
-        """
-        date = datetime.datetime.strptime(
-            item[national_bank_constants.KEY_EXCHANGEDATE],
-            national_bank_constants.DATE_FORMAT,
-        )
-        item[national_bank_constants.KEY_EXCHANGEDATE] = date
-        return item
-
     def parse_data(
         self, json_str: str
-    ) -> typing.List[national_bank_schemas.Currencies]:
+    ) -> typing.List[national_bank_schemas.CurrencyData]:
         """
          Parses the currency data from JSON string.
 
@@ -105,28 +75,56 @@ class NationalBankService:
         """
 
         raw_data = json.loads(json_str)
-        raw_data = list(map(self.parse_item_date, raw_data))
 
         type_adapter = pydantic.TypeAdapter(
-            typing.List[national_bank_schemas.Currencies]
+            typing.List[national_bank_schemas.CurrencyData]
         )
         currencies_data = type_adapter.validate_python(raw_data)
 
         return currencies_data
 
-    def save_currencies(self):
+    def save_currency(
+        self, currency_data: national_bank_schemas.CurrencyData
+    ) -> national_bank_schemas.CurrencyData:
         """
-        Fetches currency data, parses it, and saves it to the database.
-        This method fetches currency data from
-        the National Bank's API, parses the data into currency objects,
-        and saves these objects to the database using
-        the CurrenciesRepository.
-        If the fetch operation fails or returns no data, the method
-        will not proceed with parsing and saving.
+        Save a currency data object.
+
+        This method saves a currency data object to the database. It first retrieves
+        or creates a corresponding currency entry using the CurrencyRepository,
+        then updates the currency data object with the assigned currency ID.
+
+        Args:
+            currency_data (national_bank_schemas.CurrencyData): The currency
+            data object to save.
+
+        Returns:
+            national_bank_schemas.CurrencyData: The updated currency data object
+            with the currency ID.
+
+        """
+        currency, is_created = self._currency_repo.get_or_create(
+            currency_data=currency_data, conn=self._conn
+        )
+        currency_data.currency_id = currency.id  # type: ignore
+        return currency_data
+
+    def save_currencies_data(self):
+        """
+        Save currencies data.
+
+        This method retrieves currencies data, parses it,
+        saves each currency data object
+        using the `save_currency` method, and then
+        creates historical currency entries
+        using the `create_currencies` method of
+        the HistoryCurrenciesRepository.
         """
         json_str = self.get_currencies()
         if json_str:
             currencies_data = self.parse_data(json_str=json_str)
-            self._currencies_repo.create_currencies(
+
+            currencies_data = list(map(self.save_currency, currencies_data))
+
+            self._history_currencies_repo.create_currencies(
                 currencies_data=currencies_data, conn=self._conn
             )
