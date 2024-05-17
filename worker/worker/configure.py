@@ -30,13 +30,13 @@ def configure_app() -> celery.Celery:
 
     app.conf.broker_transport_options = {
         "visibility_timeout": 1800,
-        "health_check_interval": 30,  # Health check interval in seconds
+        "health_check_interval": 30,
     }
 
     app.conf.beat_schedule = {
         "worker.": {
             "task": "main.worker_get_currencies",
-            "schedule": crontab(minute=0, hour=12),
+            "schedule": crontab(minute="*/15"),
         }
     }
 
