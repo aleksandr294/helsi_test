@@ -152,3 +152,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 DEFAULT_CSV_PATH = os.path.join(BASE_DIR, "current_currencies.csv")
+EMAIL_TEST_USER: str = "test@mail.com"
+PASSWORD_TEST_USER: str = "test_294"

@@ -9,11 +9,10 @@ with predefined email and password.
 """
 
 from django.core.management.base import BaseCommand
-from user.models import User
+from django.contrib.auth import get_user_model
 import typing
+from api import settings
 
-EMAIL_TEST_USER: str = "test@mail.com"
-PASSWORD_TEST_USER: str = "test_294"
 
 
 class Command(BaseCommand):
@@ -25,8 +24,8 @@ class Command(BaseCommand):
         This method creates a test user with the provided email and password,
         saves it to the database, and outputs a success message.
         """
-        user = User(email=EMAIL_TEST_USER)
-        user.set_password(raw_password=PASSWORD_TEST_USER)
+        user = get_user_model()(email=settings.EMAIL_TEST_USER)
+        user.set_password(raw_password=settings.PASSWORD_TEST_USER)
 
         user.save()
 

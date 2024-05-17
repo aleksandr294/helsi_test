@@ -74,7 +74,6 @@ class User(AbstractBaseUser):
     )
     is_active = models.BooleanField(default=True)
     objects = UserManager()
-
     USERNAME_FIELD = "email"
 
     def __str__(self) -> models.EmailField:
