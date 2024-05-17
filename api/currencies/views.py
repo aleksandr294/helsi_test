@@ -35,7 +35,7 @@ class CurrentCurrenciesListAPIView(generics.ListAPIView):
         current_time = timezone.now()
         queryset = currencies_models.HistoryCurrencies.objects.filter(
             date__lt=current_time, actualy_end__gt=current_time
-        )
+        ).distinct("currency")
 
         return queryset
 
@@ -108,8 +108,8 @@ class CurrentFavoriteCurrenciesListAPIView(generics.ListAPIView):
 
         queryset = currencies_models.HistoryCurrencies.objects.filter(
             currency__in=favorite_currencies.values_list("currency", flat=True),
-            date__lt=current_time,
-            actualy_end__gt=current_time,
-        )
+            date__lte=current_time,
+            actualy_end__gte=current_time,
+        ).distinct("currency")
 
         return queryset

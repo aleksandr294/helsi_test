@@ -14,10 +14,51 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - network_helsi
   redis:
     image: redis
     restart: always
     ports:
       - "6379:6379"
+    networks:
+      - network_helsi
+
+  api:
+    build:
+      context: ./api
+      args:
+        - POSTGRES_URL=postgresql://user:user@db:5432/helsi_test_db
+        - SECRET_KEY=secret
+        - DEBUG=True
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - network_helsi
+
+
+  worker_helsi:
+    build:
+      context: ./worker
+      args:
+        - POSTGRES_URL=postgresql+psycopg2://user:user@db:5432/helsi_test_db
+        - BANK_URL=https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json
+        - REDIS_URL=redis://redis:6379/0
+    restart: always
+    depends_on:
+      - db
+      - redis
+      - api
+    networks:
+      - network_helsi
+
+
+networks:
+  network_helsi:
+    driver: bridge
+
 volumes:
   db_data:

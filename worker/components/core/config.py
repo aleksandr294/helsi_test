@@ -1,8 +1,8 @@
 """
-Module for loading configuration settings from a .env file 
+Module for loading configuration settings from a .env.example file
 and defining the Config class.
 The module uses the pydantic_settings and dotenv 
-libraries to load settings from a .env file
+libraries to load settings from a .env.example file
 and provide access to these settings as a Config object.
 """
 
