@@ -19,4 +19,4 @@ def get_currencies():
     db = database.DatabaseMngr.get_db()
     with db.connect() as conn:
         nb_service = service.NationalBankService(conn=conn)
-        nb_service.save_currencies()
+        nb_service.save_currencies_data()

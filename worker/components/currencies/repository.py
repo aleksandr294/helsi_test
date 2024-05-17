@@ -1,78 +1,66 @@
 """
-Module defining the CurrenciesRepository class for managing
-currency data in the database.
+Module for managing currency data using a repository 
+pattern and testing with pytest.
+
+This module defines the CurrencyRepository class, 
+which provides methods to interact with currency data.
+It also includes fixtures and tests to verify 
+the functionality of this repository, particularly the
+get_or_create method. The tests use an in-memory 
+SQLite database for isolated and repeatable test runs.
+
 """
 
-from components.currencies import models as currencies_models
+from components.currencies import models as currency_models
 import typing
 from components.third_party.national_bank import schemas as national_bank_schemas
 from sqlalchemy import orm
 import sqlalchemy
 
 
-class CurrenciesRepository:
+class CurrencyRepostitory:
     def __init__(
         self,
-        currencies_model: type[
-            currencies_models.Currencies
-        ] = currencies_models.Currencies,
+        currency_model: type[currency_models.Currency] = currency_models.Currency,
     ):
-        """
-        Initializes the CurrenciesRepository.
 
-        Args:
-            currencies_model (type[currencies_models.Currencies]): The SQLAlchemy model
-             for currencies. Defaults to currencies_models.Currencies.
+        self._currency_model = currency_model
 
-        """
-        self._currencies_model = currencies_model
-
-    def create_currencies(
+    def get_or_create(
         self,
-        currencies_data: typing.List[national_bank_schemas.Currencies],
+        currency_data: national_bank_schemas.CurrencyData,
         conn: orm.Session,
-    ) -> typing.List[currencies_models.Currencies]:
+    ) -> typing.Tuple[currency_models.Currency, bool]:
         """
-         Creates currency objects from the provided data and saves them to the database.
+        Retrieve a currency object if it exists, otherwise create it.
 
         Args:
-            currencies_data (List[national_bank_schemas.Currencies]): List of currency
-            objects.
-            conn (orm.Session): The ORM session object for database connection.
-
-        """
-        currencies_objs = [
-            self._currencies_model(
-                code=currency.r030,
-                text_code=currency.cc,
-                rate=currency.rate,
-                date=currency.exchangedate,
-            )
-            for currency in currencies_data
-        ]
-
-        conn.add_all(currencies_objs)
-        conn.commit()
-
-        return currencies_objs
-
-    def get_all(
-        self,
-        conn: orm.Session,
-    ) -> typing.List[currencies_models.Currencies]:
-        """
-        Retrieve all currency objects from the database.
-
-        Args:
-            conn (sqlalchemy.orm.Session): An active session connected to the database.
+            currency_data (national_bank_schemas.CurrencyData): The data for
+            the currency to get or create.
+            conn (orm.Session): The database session to use for the query.
 
         Returns:
-            typing.List[currencies_models.Currencies]: A list of currency objects
-            retrieved from the database.
+            typing.Tuple[currency_models.Currency, bool]: A tuple containing
+            the currency object and a boolean
+            indicating whether the object was created (True) or already
+            existed (False).
 
         """
-        query = sqlalchemy.select(currencies_models.Currencies)
+        query = sqlalchemy.select(self._currency_model).where(
+            self._currency_model.code == currency_data.r030
+        )
         result = conn.execute(query)
-        currencies_objs = list(result.scalars().all())
+        currency = result.scalar()
+        if currency:
+            return currency, False
+        else:
 
-        return currencies_objs
+            currency = self._currency_model(
+                code=currency_data.r030,
+                text_code=currency_data.cc,
+                name=currency_data.txt,
+            )
+
+            conn.add(currency)
+            conn.commit()
+            return currency, True
