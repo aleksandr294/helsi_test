@@ -1,9 +1,9 @@
 from django.core.management.base import BaseCommand
-from currencies.models import Сurrencies
+from currencies.models import HistoryCurrencies
 import typing
-import datetime
 import csv
 from api import settings
+from django.utils import timezone
 
 
 class Command(BaseCommand):
@@ -21,9 +21,10 @@ class Command(BaseCommand):
     def handle(self, *args: typing.Tuple, **options: typing.Dict):
         file_path = options["file_path"]
 
-        current_date = datetime.datetime.utcnow().date()
-        queryset = Сurrencies.objects.filter(date=current_date)
-
+        current_time = timezone.now()
+        queryset = HistoryCurrencies.objects.filter(
+            date__lt=current_time, actualy_end__gt=current_time
+        )
         if queryset:
             raw_data = queryset.values()
             fields = tuple(raw_data[0].keys())
@@ -37,4 +38,4 @@ class Command(BaseCommand):
                 )
 
         else:
-            self.stdout.write(self.style.INFO("Current currenсies not found"))
+            self.stdout.write(self.style.INFO("Current currencies not found"))
