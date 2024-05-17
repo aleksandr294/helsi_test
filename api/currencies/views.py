@@ -1,6 +1,11 @@
 from django.utils import timezone
 from rest_framework import generics
-from currencies import serializers as currencies_serializer, models as currencies_models
+from currencies import (
+    serializers as currencies_serializer,
+    models as currencies_models,
+    filters as currencies_filters,
+)
+from django_filters import rest_framework as filters
 
 
 class CurrentCurrenciesListAPIView(generics.ListAPIView):
@@ -22,3 +27,17 @@ class CurrentCurrenciesListAPIView(generics.ListAPIView):
         )
 
         return queryset
+
+
+class CurrenciesListAPIView(generics.ListAPIView):
+
+    serializer_class = currencies_serializer.CurrencySerializer
+    queryset = currencies_models.Currency.objects.all()
+
+
+class HistoryCurrenciesListAPIView(generics.ListAPIView):
+
+    serializer_class = currencies_serializer.HistoryCurrenciesSerializer
+    queryset = currencies_models.HistoryCurrencies.objects.all()
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = currencies_filters.DateTimeRangeFilter
