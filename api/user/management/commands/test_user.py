@@ -14,7 +14,6 @@ import typing
 from api import settings
 
 
-
 class Command(BaseCommand):
     help = "Creating test user"
 
@@ -24,9 +23,14 @@ class Command(BaseCommand):
         This method creates a test user with the provided email and password,
         saves it to the database, and outputs a success message.
         """
-        user = get_user_model()(email=settings.EMAIL_TEST_USER)
-        user.set_password(raw_password=settings.PASSWORD_TEST_USER)
+        User = get_user_model()
+        user, is_created = User.objects.get_or_create(email=settings.EMAIL_TEST_USER)
 
-        user.save()
-
-        self.stdout.write(self.style.SUCCESS(f"Successfully created user {user.email}"))
+        if is_created:
+            user.set_password(raw_password=settings.PASSWORD_TEST_USER)
+            user.save()
+            self.stdout.write(
+                self.style.SUCCESS(f"Successfully created user {user.email}")
+            )
+        else:
+            self.stdout.write(self.style.SUCCESS("User is created"))
