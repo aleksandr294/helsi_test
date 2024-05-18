@@ -61,9 +61,30 @@ source check_code.sh
 ```
 Swagger: http://127.0.0.1:8000/api/schema/swagger-ui/
 
+Command to create a test user:
+
+```
+python manage.py test_user
+```
+
 Email test user: ```test@mail.com```
 
 Password test user: ```test_294```
+
+To export exchange rates, enter the command:
+
+The file will be saved in the default path: ```/path/to/helsti_test/current_currencies.csv```
+
+```
+python manage.py build_csv
+```
+
+To save using a custom path:
+
+```
+python manage.py build_csv /path/to/your/file
+```
+
 
 
 ## Worker
